@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  mos-form:
+    build: .
+    container_name: mos-form-server
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      # ========== Feishu Configuration (MUST fill in before deployment) ==========
+      - FEISHU_APP_ID=${FEISHU_APP_ID}
+      - FEISHU_APP_SECRET=${FEISHU_APP_SECRET}
+      - FEISHU_WEBHOOK_URL=${FEISHU_WEBHOOK_URL}
+      - FEISHU_NOTIFY_OPEN_ID=${FEISHU_NOTIFY_OPEN_ID}
+      - SPREADSHEET_APP_TOKEN=${SPREADSHEET_APP_TOKEN}
+      - SPREADSHEET_SHEET_ID=${SPREADSHEET_SHEET_ID}
+      - BITABLE_APP_TOKEN=${BITABLE_APP_TOKEN}
+      - BITABLE_TABLE_ID=${BITABLE_TABLE_ID}
+      # ========== Server Configuration ==========
+      - PORT=3000
+      # ========== Optional: If behind a reverse proxy, uncomment and set ==========
+      # - VIRTUAL_HOST=form.moleculemind.com
+      # - LETSENCRYPT_HOST=form.moleculemind.com
+      # - LETSENCRYPT_EMAIL=dev@moleculemind.com

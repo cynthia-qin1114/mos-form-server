@@ -1,0 +1,15 @@
+{
+  "name": "mos-form-server",
+  "version": "1.0.0",
+  "description": "MoleculeOS Pioneer Partner Form - Backend server with Feishu integration",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^4.22.2",
+    "node-fetch": "^2.7.0"
+  }
+}
