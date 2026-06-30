@@ -123,6 +123,17 @@ async function insertSpreadsheetRow(formData) {
     sheetId = sheetData.data.sheets[0].sheet_id;
   }
 
+  // Read current data to find next empty row (avoid overwrite)
+  const readRes = await fetch(
+    `https://open.feishu.cn/open-apis/sheet/v2/spreadsheets/${SPREADSHEET_APP_TOKEN}/values/${sheetId}!A1:A1000`,
+    { headers: { 'Authorization': `Bearer ${token}` } }
+  );
+  const readData = await readRes.json();
+  // Count existing rows (skip header row at A1)
+  const existingRows = (readData.data && readData.data.valueRange && readData.data.valueRange.values)
+    ? readData.data.valueRange.values.length : 0;
+  const nextRow = Math.max(existingRows + 1, 2); // Start from row 2 (after header)
+
   const values = [
     [new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })],
     [formData.name],
@@ -140,7 +151,7 @@ async function insertSpreadsheetRow(formData) {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json; charset=utf-8' },
       body: Buffer.from(JSON.stringify({
-        valueRange: { range: `${sheetId}!A1:H1`, values }
+        valueRange: { range: `${sheetId}!A${nextRow}:H${nextRow}`, values }
       }), 'utf-8')
     }
   );
@@ -150,7 +161,7 @@ async function insertSpreadsheetRow(formData) {
     throw new Error(`Spreadsheet write failed: ${data.msg}`);
   }
 
-  console.log('[Feishu] Spreadsheet row inserted successfully');
+  console.log(`[Feishu] Spreadsheet row inserted at row ${nextRow}`);
   return data;
 }
 
