@@ -72,26 +72,27 @@ app.post('/api/submit', async (req, res) => {
 app.get('/api/test-feishu', async (req, res) => {
   try {
     const token = await feishu.getTenantAccessToken();
-    
-    // Try to detect spreadsheet structure
-    let sheetInfo = null;
-    let bitableInfo = null;
-    
-    try {
-      const sheetId = await feishu.detectSheetId(token);
-      sheetInfo = { sheetId, status: 'ok' };
-    } catch (e) {
-      sheetInfo = { status: 'failed', error: e.message };
-    }
 
+    // Test Bitable connectivity (primary method)
+    let bitableInfo = null;
     try {
-      const tableId = await feishu.detectTableId(token);
-      const fields = await feishu.listBitableFields(token, tableId);
-      bitableInfo = {
-        tableId,
-        fields: fields.map(f => ({ name: f.field_name, type: f.type, id: f.field_id })),
-        status: 'ok'
-      };
+      // Try listing records (limit 1) to verify bitable access
+      const listRes = await fetch(
+        `https://open.feishu.cn/open-apis/bitable/v1/apps/${process.env.BITABLE_APP_TOKEN}/tables/${process.env.BITABLE_TABLE_ID}/records?page_size=1`,
+        { headers: { 'Authorization': `Bearer ${token}` } }
+      );
+      const listData = await listRes.json();
+      if (listData.code === 0) {
+        bitableInfo = {
+          status: 'ok',
+          appToken: process.env.BITABLE_APP_TOKEN,
+          tableId: process.env.BITABLE_TABLE_ID,
+          totalRecords: listData.data.total || 0,
+          message: 'Bitable 连接正常'
+        };
+      } else {
+        bitableInfo = { status: 'failed', error: listData.msg };
+      }
     } catch (e) {
       bitableInfo = { status: 'failed', error: e.message };
     }
@@ -99,9 +100,9 @@ app.get('/api/test-feishu', async (req, res) => {
     res.json({
       success: true,
       token: 'obtained',
-      spreadsheet: sheetInfo,
       bitable: bitableInfo,
-      webhook: process.env.FEISHU_WEBHOOK_URL ? 'configured' : 'not configured'
+      webhook: process.env.FEISHU_WEBHOOK_URL ? 'configured' : 'not configured',
+      notifyOpenId: process.env.FEISHU_NOTIFY_OPEN_ID ? 'configured' : 'not configured'
     });
   } catch (err) {
     res.status(500).json({
