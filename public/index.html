@@ -614,9 +614,10 @@
             })
             .catch(err => {
                 console.error('Submit error:', err);
-                // Fallback: show success page even if server unreachable
-                document.getElementById('formPage').style.display = 'none';
-                document.getElementById('successPage').classList.add('active');
+                alert('提交失败，请检查网络连接后重试');
+                submitBtn.disabled = false;
+                submitBtn.textContent = '提 交';
+                submitBtn.style.opacity = '1';
             });
         }
 
